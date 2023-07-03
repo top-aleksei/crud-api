@@ -1,13 +1,17 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { create, deleteById, findAll, findById, update } from '../models/userModel';
-import { parsePostData } from '../utils/utils';
+import {
+  parsePostData,
+  sendResponseMessage,
+  sendResponseUserData,
+  validatePostUserBody,
+} from '../utils/utils';
+import { validate as uuidValidate } from 'uuid';
+import { IUser } from '../types';
 
 export function getAllUsers(request: IncomingMessage, response: ServerResponse) {
   const users = findAll();
-  response.writeHead(200, {
-    'content-type': 'application/json',
-  });
-  response.end(JSON.stringify(users));
+  sendResponseUserData(response, 200, users);
 }
 
 export function getUser(
@@ -17,16 +21,13 @@ export function getUser(
 ) {
   const user = findById(id);
 
+  if (id && !uuidValidate(id)) {
+    return sendResponseMessage(response, 400, 'user ID in not valid (not uuid)');
+  }
   if (user) {
-    response.writeHead(200, {
-      'content-type': 'application/json',
-    });
-    response.end(JSON.stringify(user));
+    sendResponseUserData(response, 200, user);
   } else {
-    response.writeHead(404, {
-      'content-type': 'application/json',
-    });
-    response.end(JSON.stringify({ message: 'User not found' }));
+    sendResponseMessage(response, 404, `User with ID: '${id}' doesn't exist`);
   }
 }
 
@@ -35,11 +36,13 @@ export async function createUser(request: IncomingMessage, response: ServerRespo
 
   const { username, age, hobbies } = JSON.parse(body);
   const user = { username, age, hobbies };
+
+  if (!validatePostUserBody(user)) {
+    return sendResponseMessage(response, 400, 'Body request doesnt contain required fields');
+  }
+
   const newUser = create(user);
-  response.writeHead(201, {
-    'content-type': 'application/json',
-  });
-  response.end(JSON.stringify(newUser));
+  sendResponseUserData(response, 201, newUser);
 }
 
 export async function updateUser(
@@ -48,11 +51,11 @@ export async function updateUser(
   id: string | undefined,
 ) {
   const user = findById(id);
+  if (id && !uuidValidate(id)) {
+    return sendResponseMessage(response, 400, 'user ID in not valid (not uuid)');
+  }
   if (!user) {
-    response.writeHead(404, {
-      'content-type': 'application/json',
-    });
-    response.end(JSON.stringify({ message: 'User not found' }));
+    sendResponseMessage(response, 404, `User with ID: '${id}' doesn't exist`);
   } else {
     const body = await parsePostData(request);
 
@@ -62,11 +65,8 @@ export async function updateUser(
       age: age || user.age,
       hobbies: hobbies || user.hobbies,
     };
-    const updatedUser = update(id, userData);
-    response.writeHead(201, {
-      'content-type': 'application/json',
-    });
-    response.end(JSON.stringify(updatedUser));
+    const updatedUser = update(id, userData) as IUser;
+    sendResponseUserData(response, 200, updatedUser);
   }
 }
 
@@ -79,14 +79,8 @@ export function deleteUser(
 
   if (user) {
     deleteById(id);
-    response.writeHead(200, {
-      'content-type': 'application/json',
-    });
-    response.end(JSON.stringify({ message: `User '${id}' has been deleted` }));
+    sendResponseMessage(response, 200, `User '${id}' has been deleted`);
   } else {
-    response.writeHead(404, {
-      'content-type': 'application/json',
-    });
-    response.end(JSON.stringify({ message: 'User not found' }));
+    sendResponseMessage(response, 404, `User '${id}' was not found`);
   }
 }

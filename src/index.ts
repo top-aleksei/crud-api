@@ -51,7 +51,7 @@ const server = createServer((req, res) => {
         sendResponseMessage(res, 400, 'Invalid http method');
     }
   } catch (err) {
-    sendResponseMessage(res, 500, 'Error on the server side');
+    sendResponseMessage(res, 500, 'Error on the server');
   }
 });
 

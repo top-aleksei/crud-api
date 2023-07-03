@@ -5,10 +5,13 @@ module.exports = {
   mode: NODE_ENV,
   target: 'node',
   output: {
-    path: path.resolve(__dirname, 'build'),
+    path: path.resolve(__dirname, 'dist'),
     filename: 'index.js',
   },
   resolve: {
     extensions: ['.ts', '.js'],
+  },
+  module: {
+    rules: [{ test: /\.([cm]?ts|tsx)$/, loader: 'ts-loader' }],
   },
 };

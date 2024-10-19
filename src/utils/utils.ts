@@ -28,7 +28,7 @@ export function sendResponseMessage(res: ServerResponse, statusCode: number, mes
 export function sendResponseUserData(
   res: ServerResponse,
   statusCode: number,
-  user: IUser[] | IUser,
+  user: IUser[] | IUser | IUserInfo,
 ) {
   res.writeHead(statusCode, {
     'content-type': 'application/json',

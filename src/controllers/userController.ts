@@ -7,7 +7,7 @@ import {
   validatePostUserBody,
 } from '../utils/utils';
 import { validate as uuidValidate } from 'uuid';
-import { IUser } from '../types';
+import { IUser } from '../types/index';
 
 export function getAllUsers(request: IncomingMessage, response: ServerResponse) {
   const users = findAll();
